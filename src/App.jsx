@@ -5,11 +5,12 @@ import { Layers, Droplets, Flame, Zap, Wind, Move, Save, RotateCcw, Download, Up
 const LAYER_CONFIG = {
   co: { name: 'Ogrzewanie', icon: <Flame size={18} />, color: '#ef4444' },
   wodkan: { name: 'Wod-Kan', icon: <Droplets size={18} />, color: '#3b82f6' },
-  elektryka: { name: 'Elektryka (SEP)', icon: <Zap size={18} />, color: '#eab308' },
+  // ZMIANA: Zmiana nazwy i oznaczenie jako BETA
+  elektryka: { name: 'Elektryka (BETA)', icon: <Zap size={18} />, color: '#eab308' },
   wentylacja: { name: 'Rekuperacja', icon: <Wind size={18} />, color: '#22c55e' }
 };
 
-// --- KOMPLETNY SZABLON STARTOWY V7 (Obejmuje Twoje przesunięcia i Fotowoltaikę) ---
+// --- KOMPLETNY SZABLON STARTOWY V7 (Obejmuje Twoje przesunięcia) ---
 const DEFAULT_DATA = {
   parter: {
     co: [
@@ -53,17 +54,11 @@ const DEFAULT_DATA = {
       { id: "trasa_osw_salon", type: "line", points: [[0.76, 0.38], [0.5, 0.38], [0.5, 0.65]], thickness: 2, color: "#eab308", label: "Obwód Oświetlenia" },
       { id: "trasa_osw_kuchnia", type: "line", points: [[0.76, 0.38], [0.8, 0.38], [0.8, 0.75]], thickness: 2, color: "#eab308", label: "Obwód Oświetlenia" },
       { id: "trasa_osw_biura", type: "line", points: [[0.76, 0.34], [0.55, 0.34], [0.55, 0.15]], thickness: 2, color: "#eab308", label: "Obwód Oświetlenia" },
-
-      // --- NOWE POŁĄCZENIA: ZMYWARKA I LODÓWKA ---
       { id: 'trasa_zmywarka', type: 'line', points: [[0.76, 0.36], [0.85, 0.36], [0.85, 0.82]], thickness: 2, color: '#3b82f6', dashed: true, label: 'Obwód dedykowany: Zmywarka' },
       { id: 'trasa_lodowka', type: 'line', points: [[0.76, 0.36], [0.88, 0.36], [0.88, 0.7]], thickness: 2, color: '#3b82f6', dashed: true, label: 'Obwód stały: Lodówka' },
-      
-      // --- NOWE POŁĄCZENIA: KOTŁOWNIA ---
       { id: 'gn_kociol', type: 'circle', x: 0.34, y: 0.15, r: 0.01, color: '#3b82f6', label: 'Zasilanie Kotła' },
       { id: 'gn_hydrofor', type: 'circle', x: 0.37, y: 0.22, r: 0.01, color: '#3b82f6', label: 'Zasilanie Hydroforu' },
       { id: 'trasa_kotlownia', type: 'line', points: [[0.76, 0.35], [0.35, 0.35], [0.35, 0.15]], thickness: 2, color: '#3b82f6', dashed: true, label: 'Zasilanie Kotłowni' },
-      
-      // --- INFRASTRUKTURA FOTOWOLTAICZNA (PV) ---
       { id: 'falownik_pv', type: 'rect', x: 0.44, y: 0.05, w: 0.04, h: 0.03, color: '#10b981', label: 'Miejsce na Falownik PV' },
       { id: 'trasa_pv_ac', type: 'line', points: [[0.76, 0.35], [0.46, 0.35], [0.46, 0.05]], thickness: 4, color: '#10b981', dashed: true, label: 'Przygotowanie: Kabel AC Falownika' },
       { id: 'trasa_pv_dc', type: 'line', points: [[0.46, 0.05], [0.46, 0.01]], thickness: 3, color: '#10b981', dashed: true, label: 'Peszel na dach (Kable DC paneli)' }
@@ -113,8 +108,6 @@ const DEFAULT_DATA = {
       { id: "tr_os_dol", type: "line", points: [[0.5, 0.42], [0.5, 0.8], [0.35, 0.8]], thickness: 2, color: "#eab308", label: "Obwód Oświetlenia" },
       { id: "tr_gn_rodz", type: "line", points: [[0.48, 0.39], [0.22, 0.39], [0.22, 0.15]], thickness: 2, color: "#10b981", label: "Obwód Gniazd" },
       { id: "tr_gn_ld", type: "line", points: [[0.48, 0.42], [0.22, 0.42], [0.22, 0.9]], thickness: 2, color: "#10b981", label: "Obwód Gniazd" },
-      
-      // --- UZUPEŁNIONE TRASY NA PIĘTRZE DLA PRAWYCH POKOI ---
       { id: 'tr_gn_pg', type: 'line', points: [[0.48, 0.39], [0.85, 0.39], [0.85, 0.10]], thickness: 2, color: '#10b981', label: 'Obwód Gniazd Prawa Górna' },
       { id: 'tr_gn_pd', type: 'line', points: [[0.48, 0.42], [0.85, 0.42], [0.85, 0.90]], thickness: 2, color: '#10b981', label: 'Obwód Gniazd Prawa Dolna' },
       { id: 'tr_gn_laz', type: 'line', points: [[0.48, 0.40], [0.85, 0.40], [0.85, 0.52]], thickness: 2, color: '#10b981', label: 'Obwód Gniazd Łazienka' }
@@ -135,7 +128,7 @@ const DEFAULT_DATA = {
   }
 };
 
-const STORAGE_KEY = 'mep_stodola_storage_v7';
+const STORAGE_KEY = 'mep_stodola_storage_v8';
 
 export default function App() {
   const canvasRef = useRef(null);
@@ -152,7 +145,8 @@ export default function App() {
   });
 
   const [activeFloor, setActiveFloor] = useState('parter');
-  const [activeLayers, setActiveLayers] = useState({ co: true, wodkan: true, elektryka: true, wentylacja: true });
+  // ZMIANA: Elektryka domyślnie WYŁĄCZONA po załadowaniu
+  const [activeLayers, setActiveLayers] = useState({ co: true, wodkan: true, elektryka: false, wentylacja: true });
   const [isEditMode, setIsEditMode] = useState(false);
   const [dragInfo, setDragInfo] = useState(null);
   const [hoverInfo, setHoverInfo] = useState(null);
@@ -221,7 +215,6 @@ export default function App() {
           el.points.forEach(p => ctx.lineTo(p[0] * w, p[1] * h));
           ctx.closePath(); ctx.fill(); ctx.stroke();
           
-          // Rysowanie uchwytów edycji dla poligonów
           if (isEditMode) {
              ctx.fillStyle = '#ef4444';
              el.points.forEach(p => {
@@ -241,7 +234,6 @@ export default function App() {
           ctx.stroke();
           ctx.setLineDash([]); 
 
-          // Rysowanie uchwytów edycji dla załamań linii
           if (isEditMode) {
             ctx.fillStyle = '#ef4444';
             el.points.forEach(p => {
@@ -288,19 +280,17 @@ export default function App() {
     const my = ((e.clientY - rect.top) * (canvasRef.current.height / rect.height)) / canvasRef.current.height;
     
     const floorData = installations[activeFloor];
-    const layers = Object.keys(floorData).reverse(); // Złap najpierw warstwy na wierzchu
+    const layers = Object.keys(floorData).reverse();
     
     for (const lk of layers) {
       if (!activeLayers[lk]) continue;
       const els = floorData[lk];
       
-      // Szukaj punktów kontrolnych linii i poligonów najpierw (bo są mniejsze)
       for (let i = els.length - 1; i >= 0; i--) {
         const el = els[i];
         if (el.type === 'line' || el.type === 'polygon') {
            for (let j = 0; j < el.points.length; j++) {
              const [px, py] = el.points[j];
-             // Tolerancja kliknięcia uwzględniająca proporcje ekranu
              if (Math.abs(mx - px) < 0.02 && Math.abs(my - py) < 0.02 * (canvasRef.current.width/canvasRef.current.height)) {
                 setDragInfo({ layerKey: lk, index: i, pointIndex: j });
                 return;
@@ -309,7 +299,6 @@ export default function App() {
         }
       }
       
-      // Jeśli nie linia/poligon, szukaj symboli (kółka/kwadraty)
       for (let i = els.length - 1; i >= 0; i--) {
         const el = els[i];
         if (el.type === 'circle' && Math.hypot(mx - el.x, my - el.y) < (el.r || 0.02) * 2) {
@@ -331,12 +320,9 @@ export default function App() {
       setInstallations(prev => {
         const copy = JSON.parse(JSON.stringify(prev));
         const el = copy[activeFloor][dragInfo.layerKey][dragInfo.index];
-        
-        // Jeśli edytujemy węzeł linii lub poligonu
         if (dragInfo.pointIndex !== undefined) {
            el.points[dragInfo.pointIndex] = [mx, my];
         } else {
-           // Edycja symbolu
            el.x = mx; el.y = my;
         }
         return copy;
@@ -359,14 +345,14 @@ export default function App() {
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden">
       <div className="w-80 bg-white border-r flex flex-col shadow-lg z-20">
         <div className="p-6 bg-slate-900 text-white">
-          <h1 className="text-xl font-bold">MepPlanner Pro v6</h1>
-          <p className="text-[10px] uppercase opacity-50 tracking-widest">Edycja tras i poligonów</p>
+          <h1 className="text-xl font-bold">MepPlanner Pro v7</h1>
+          <p className="text-[10px] uppercase opacity-50 tracking-widest">Wizualizacja Instalacji</p>
         </div>
 
         <div className="p-4 border-b space-y-2 bg-slate-50">
            <button onClick={() => setIsEditMode(!isEditMode)} 
              className={`w-full flex items-center justify-center gap-2 p-3 rounded-lg font-bold transition shadow-sm ${isEditMode ? 'bg-orange-600 text-white animate-pulse' : 'bg-white text-slate-700 border hover:bg-slate-100'}`}>
-             <Move size={18} /> {isEditMode ? 'Zapisz i Wyjdź' : 'Tryb Edycji (Wszystko)'}
+             <Move size={18} /> {isEditMode ? 'Zapisz i Wyjdź' : 'Tryb Edycji (Przesuń)'}
            </button>
            <div className="grid grid-cols-2 gap-2">
              <button onClick={exportData} className="flex items-center justify-center gap-1 p-2 text-[10px] bg-white border rounded hover:bg-slate-100">
@@ -405,8 +391,8 @@ export default function App() {
         </div>
 
         <div className="p-4 bg-slate-50 border-t flex justify-center">
-            <button onClick={() => { if(confirm('Zresetować wszystko do danych V6?')) setInstallations(DEFAULT_DATA)}} className="text-[10px] text-slate-400 hover:text-red-500 flex items-center gap-1 uppercase font-bold">
-                <RotateCcw size={12}/> Przywróć nową bazę V6
+            <button onClick={() => { if(confirm('Zresetować wszystko do danych fabrycznych?')) setInstallations(DEFAULT_DATA)}} className="text-[10px] text-slate-400 hover:text-red-500 flex items-center gap-1 uppercase font-bold">
+                <RotateCcw size={12}/> Reset (Wymaga przeładowania)
             </button>
         </div>
       </div>
@@ -416,8 +402,8 @@ export default function App() {
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95">
              <div className="text-center p-8 border-2 border-dashed border-slate-300 rounded-3xl max-w-sm">
                <Layers size={40} className="mx-auto mb-4 text-slate-300" />
-               <p className="font-bold text-slate-800">Wymagane pliki .jpg w folderze PUBLIC</p>
-               <p className="text-xs text-slate-500 mt-2 leading-relaxed">Przenieś obrazy "parter.jpg" i "pietro.jpg" do głównego folderu <b>public</b> w Twoim projekcie.</p>
+               <p className="font-bold text-slate-800">Brak plików rzutów</p>
+               <p className="text-xs text-slate-500 mt-2 leading-relaxed">Upewnij się, że pliki <b>parter.jpg</b> i <b>pietro.jpg</b> znajdują się w folderze public.</p>
              </div>
           </div>
         )}
