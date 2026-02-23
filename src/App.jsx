@@ -37,19 +37,47 @@ export default function App() {
     }
   }, [currentProjectId]);
 
-  const handleCreateProject = (name, initialData = null) => {
+  const handleCreateProject = async (name, initialData = null) => {
     const newId = `proj_${Date.now()}`;
     
     const emptyData = {
-      parter: { co: [], wodkan: [], elektryka_punkty: [], elektryka_trasy: [], wentylacja: [] },
-      pietro: { co: [], wodkan: [], elektryka_punkty: [], elektryka_trasy: [], wentylacja: [] }
+      floors: []
     };
+
+    let projectData = initialData ? JSON.parse(JSON.stringify(initialData)) : emptyData;
+
+    // MAGIA SZABLONU: Jeśli ładujemy szablon (ma na start floors), próbujemy dograć domyślne jpgi z public/
+    if (initialData && initialData.floors) {
+       try {
+         for (let i = 0; i < projectData.floors.length; i++) {
+           const floorName = projectData.floors[i].name.toLowerCase();
+           let imgPath = null;
+           
+           if (floorName.includes('parter')) imgPath = '/parter.jpg';
+           if (floorName.includes('piętro') || floorName.includes('pietro')) imgPath = '/pietro.jpg';
+
+           if (imgPath) {
+              const res = await fetch(imgPath);
+              if (res.ok) {
+                 const blob = await res.blob();
+                 const reader = new FileReader();
+                 const base64data = await new Promise((resolve) => {
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                 });
+                 projectData.floors[i].image = base64data;
+              }
+           }
+         }
+       } catch (err) {
+         console.warn("Nie udało się załadować domyślnych obrazków dla szablonu:", err);
+       }
+    }
     
     const newProject = {
       id: newId,
       name: name,
-      data: initialData ? JSON.parse(JSON.stringify(initialData)) : emptyData, 
-      images: { parter: null, pietro: null }, 
+      data: projectData, 
       updatedAt: Date.now()
     };
     

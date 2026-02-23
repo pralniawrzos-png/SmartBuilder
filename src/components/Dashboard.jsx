@@ -39,12 +39,24 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject, 
              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
                <FolderPlus size={28}/>
              </div>
-             <h3 className="font-bold text-slate-800 mb-2">Rozpocznij</h3>
-             <input type="text" value={newProjName} onChange={e => setNewProjName(e.target.value)} placeholder="Nazwa projektu..." className="w-full text-sm p-2 mb-3 rounded border border-slate-300 text-center" />
+             <h3 className="font-bold text-slate-800 mb-2">Nowy Projekt</h3>
              <div className="flex flex-col gap-2 w-full">
-               <button disabled={!newProjName.trim()} onClick={() => { onCreateProject(newProjName, null); setNewProjName(''); }} className="bg-blue-600 text-white font-bold px-4 py-2 text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition w-full">Utwórz Pusty Projekt</button>
-               <button disabled={!newProjName.trim()} onClick={() => { onCreateProject(newProjName, DEFAULT_DATA); setNewProjName(''); }} className="bg-orange-500 text-white font-bold px-4 py-2 text-sm rounded-lg hover:bg-orange-600 disabled:opacity-50 transition w-full">Użyj Szablonu (Stodoła)</button>
-               <label className="cursor-pointer bg-slate-100 text-slate-700 border border-slate-300 font-bold px-4 py-2 text-sm rounded-lg hover:bg-slate-200 transition w-full mt-2 text-center block">Zaimportuj plik .json<input type="file" accept=".json,application/json" className="hidden" onChange={handleImportNewProject} /></label>
+               <input type="text" value={newProjName} onChange={e => setNewProjName(e.target.value)} placeholder="Nazwa projektu..." className="w-full text-sm p-2 rounded border border-slate-300 text-center focus:ring-2 focus:ring-blue-500 outline-none transition" />
+               <button disabled={!newProjName.trim()} onClick={async () => { await onCreateProject(newProjName, null); setNewProjName(''); }} className="bg-blue-600 text-white font-bold px-4 py-2 text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition w-full">Utwórz Pusty Projekt</button>
+               
+               <div className="w-full h-px bg-slate-200 my-2"></div>
+               
+               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Z gotowego szablonu</h4>
+               <div className="flex gap-2 w-full">
+                 <select className="flex-1 text-xs p-2 rounded border border-slate-300 bg-slate-50 focus:ring-2 focus:ring-orange-500 outline-none font-medium text-slate-700">
+                    <option value="nowodworce">Dom w Nowodworcach</option>
+                 </select>
+                 <button onClick={async () => { await onCreateProject(newProjName.trim() || 'Dom w Nowodworcach', DEFAULT_DATA); setNewProjName(''); }} className="bg-orange-500 text-white font-bold px-4 py-2 text-xs rounded-lg hover:bg-orange-600 transition shadow-sm">Utwórz</button>
+               </div>
+               
+               <div className="w-full h-px bg-slate-200 my-2"></div>
+
+               <label className="cursor-pointer bg-slate-100 text-slate-700 border border-slate-300 font-bold px-4 py-2 text-sm rounded-lg hover:bg-slate-200 transition w-full text-center block">Zaimportuj plik .json<input type="file" accept=".json,application/json" className="hidden" onChange={handleImportNewProject} /></label>
              </div>
           </div>
 

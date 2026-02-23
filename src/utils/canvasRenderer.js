@@ -5,16 +5,33 @@ export const renderCanvas = ({
   isEditMode, selectedElement, dragInfo,
   isMeasuring, measureStart, measureEnd, mousePos, projectWidthM
 }) => {
-  if (!canvas || !bgImage) return;
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  canvas.width = bgImage.width;
-  canvas.height = bgImage.height;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+
+  if (bgImage) {
+    canvas.width = bgImage.width;
+    canvas.height = bgImage.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+  } else {
+    // Domyślne płótno, gdy brakuje wgranego rzutu
+    canvas.width = 1200;
+    canvas.height = 800;
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Delikatna siatka tła
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for(let i=0; i<canvas.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+    for(let i=0; i<canvas.height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(canvas.width,i); ctx.stroke(); }
+  }
 
   const w = canvas.width;
   const h = canvas.height;
-  const floorData = installations[activeFloor];
+  const currentFloor = installations.floors.find(f => f.id === activeFloor);
+  if (!currentFloor) return;
+  const floorData = currentFloor.data;
 
   // Rysowanie stref i linii
   Object.entries(floorData).forEach(([layerKey, elements]) => {

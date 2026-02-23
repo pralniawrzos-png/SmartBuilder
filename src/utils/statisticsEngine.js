@@ -1,8 +1,10 @@
 export const calculateStats = (installations, bgImage, projectWidthM) => {
   const stats = {};
-  Object.keys(installations).forEach(floor => {
-    stats[floor] = {};
-    Object.entries(installations[floor]).forEach(([layer, els]) => {
+  if (!installations.floors) return stats;
+
+  installations.floors.forEach(floor => {
+    stats[floor.name] = {};
+    Object.entries(floor.data).forEach(([layer, els]) => {
       let count = 0;
       let length = 0;
       els.forEach(el => {
@@ -24,7 +26,7 @@ export const calculateStats = (installations, bgImage, projectWidthM) => {
         }
       });
       if (count > 0 || length > 0) {
-        stats[floor][layer] = { count, length: length.toFixed(1) };
+        stats[floor.name][layer] = { count, length: length.toFixed(1) };
       }
     });
   });
