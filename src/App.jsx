@@ -46,8 +46,16 @@ export default function App() {
 
     let projectData = initialData ? JSON.parse(JSON.stringify(initialData)) : emptyData;
 
-    // MAGIA SZABLONU: Jeśli ładujemy szablon (ma na start floors), próbujemy dograć domyślne jpgi z public/
-    if (initialData && initialData.floors) {
+    // MAGIA SZABLONU: Automatyczna migracja starszych szablonów w locie
+    if (initialData && !initialData.floors) {
+        const migratedFloors = [];
+        if (initialData.parter) migratedFloors.push({ id: 'parter', name: 'Parter', image: null, data: initialData.parter });
+        if (initialData.pietro) migratedFloors.push({ id: 'pietro', name: 'Piętro', image: null, data: initialData.pietro });
+        projectData = { floors: migratedFloors };
+    }
+
+    // Dynamiczne dogrywanie domyślnych obrazków JPG z folderu public
+    if (projectData && projectData.floors) {
        try {
          for (let i = 0; i < projectData.floors.length; i++) {
            const floorName = projectData.floors[i].name.toLowerCase();
