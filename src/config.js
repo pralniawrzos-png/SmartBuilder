@@ -5,7 +5,8 @@ export const LAYER_CONFIG = {
   wodkan: { name: 'Wod-Kan / Przyłącza', Icon: Droplets, color: '#3b82f6' },
   elektryka_punkty: { name: 'Elektryka - Punkty', Icon: Zap, color: '#eab308' },
   elektryka_trasy: { name: 'Elektryka - Kable', Icon: Activity, color: '#f59e0b' },
-  wentylacja: { name: 'Rekuperacja', Icon: Wind, color: '#22c55e' }
+  wentylacja: { name: 'Rekuperacja', Icon: Wind, color: '#22c55e' },
+  klima: { name: 'Klimatyzacja', Icon: Wind, color: '#06b6d4' }
 };
 
 export const DEFAULT_DATA = {

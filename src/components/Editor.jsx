@@ -438,32 +438,66 @@ export default function Editor({ project, onSaveProject, onClose }) {
 
       {showStats && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
-             <div className="flex justify-between items-center mb-6">
-               <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800"><BarChart2 className="text-blue-600"/> Statystyki Projektu</h2>
-               <button onClick={() => setShowStats(false)} className="text-slate-400 hover:text-red-500 transition"><X size={24}/></button>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+             <div className="flex justify-between items-center mb-6 sticky top-0 bg-white/90 backdrop-blur pb-4 border-b z-10">
+               <h2 className="text-2xl font-extrabold flex items-center gap-3 text-slate-800">
+                 <BarChart2 className="text-blue-600" size={28}/> Zestawienie Materiałów
+               </h2>
+               <button onClick={() => setShowStats(false)} className="text-slate-400 hover:text-red-500 transition bg-slate-100 hover:bg-red-50 p-2 rounded-full"><X size={20}/></button>
              </div>
-             {Object.entries(currentStats).map(([floor, layers]) => (
-               <div key={floor} className="mb-6">
-                 <h3 className="font-bold text-slate-600 uppercase text-xs mb-3 border-b pb-1">Kondygnacja: {floor === 'parter' ? 'Parter' : 'Piętro'}</h3>
-                 {Object.keys(layers).length === 0 ? <p className="text-xs text-slate-400">Brak danych.</p> : (
-                   <div className="space-y-3">
-                     {Object.entries(layers).map(([layer, data]) => (
-                       <div key={layer} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
-                         <div className="flex items-center gap-2">
-                           <div className="w-3 h-3 rounded-full shadow-inner" style={{backgroundColor: LAYER_CONFIG[layer].color}}></div>
-                           <span className="text-sm font-semibold text-slate-700">{LAYER_CONFIG[layer].name}</span>
-                         </div>
-                         <div className="text-right text-xs">
-                           {data.count > 0 && <div><span className="font-bold text-slate-800">{data.count}</span> szt.</div>}
-                           {data.length > 0 && <div className="text-slate-500"><span className="font-bold text-slate-800">{data.length}</span> mb trasy</div>}
-                         </div>
+             
+             {Object.entries(currentStats).map(([floor, layers]) => {
+               const floorTotalCount = Object.values(layers).reduce((sum, d) => sum + d.count, 0);
+               const floorTotalLength = Object.values(layers).reduce((sum, d) => sum + parseFloat(d.length || 0), 0);
+               
+               return (
+                 <div key={floor} className="mb-8">
+                   <div className="flex justify-between items-end mb-4 border-b-2 border-slate-100 pb-2">
+                     <h3 className="font-extrabold text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                       <Layers size={18} className="text-slate-400"/> 
+                       Kondygnacja: {floor === 'parter' ? 'Parter' : 'Piętro'}
+                     </h3>
+                     {Object.keys(layers).length > 0 && (
+                       <div className="text-[10px] font-bold text-slate-400 flex gap-3 uppercase bg-slate-50 p-1.5 rounded-lg border">
+                         <span>Suma Pkt: <b className="text-slate-700">{floorTotalCount}</b></span>
+                         <span>Suma Trasy: <b className="text-blue-600">{floorTotalLength.toFixed(1)}m</b></span>
                        </div>
-                     ))}
+                     )}
                    </div>
-                 )}
-               </div>
-             ))}
+
+                   {Object.keys(layers).length === 0 ? (
+                     <p className="text-sm text-slate-400 italic text-center p-6 bg-slate-50 rounded-xl border border-dashed">Brak narysowanych instalacji na tej kondygnacji.</p>
+                   ) : (
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       {Object.entries(layers).map(([layer, data]) => {
+                         const LayerIcon = LAYER_CONFIG[layer]?.Icon || Activity;
+                         return (
+                           <div key={layer} className="bg-white p-4 rounded-xl border shadow-sm hover:shadow-md transition flex flex-col justify-between group">
+                             <div className="flex items-center gap-3 mb-3">
+                               <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-inner transition-transform group-hover:scale-105" style={{backgroundColor: LAYER_CONFIG[layer].color}}>
+                                 <LayerIcon size={20} />
+                               </div>
+                               <span className="font-bold text-slate-800">{LAYER_CONFIG[layer].name}</span>
+                             </div>
+                             
+                             <div className="grid grid-cols-2 gap-2 mt-auto">
+                               <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 text-center">
+                                 <p className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Urządzenia / Pkt</p>
+                                 <p className="font-extrabold text-lg text-slate-700">{data.count} <span className="text-xs font-normal text-slate-500">szt.</span></p>
+                               </div>
+                               <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50 text-center">
+                                 <p className="text-[10px] uppercase font-bold text-blue-400 mb-0.5">Trasy / Rury</p>
+                                 <p className="font-extrabold text-lg text-blue-700">{data.length} <span className="text-xs font-normal text-blue-500">mb</span></p>
+                               </div>
+                             </div>
+                           </div>
+                         );
+                       })}
+                     </div>
+                   )}
+                 </div>
+               );
+             })}
           </div>
         </div>
       )}
