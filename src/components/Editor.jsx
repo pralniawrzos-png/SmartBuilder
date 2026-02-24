@@ -10,6 +10,7 @@ import LeftSidebar from './editor/LeftSidebar';
 import BottomTools from './editor/BottomTools';
 import RightProperties from './editor/RightProperties';
 import StatsPanel from './editor/StatsPanel';
+import AiAssistant from './editor/AiAssistant';
 
 export default function Editor({ project, onSaveProject, onClose }) {
   const canvasRef = useRef(null);
@@ -83,7 +84,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const [projectWidthM, setProjectWidthM] = useState(10); 
 
   const [showStats, setShowStats] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showAi, setShowAi] = useState(true);
 
   useEffect(() => {
     if (!activeFloor || !installations.floors) { setBgImage(null); setImageLoaded(false); return; }
@@ -340,8 +341,8 @@ export default function Editor({ project, onSaveProject, onClose }) {
 
       <StatsPanel showStats={showStats} setShowStats={setShowStats} currentStats={currentStats} />
 
-      {/* ZMIANA: Dodano md:pl-[300px] by ekran powitalny nie wjeżdżał pod lewy panel; touch-none tylko gdy edycja/miara (canvas ma własny touch-action) */}
-      <div className={`absolute inset-0 z-10 flex items-center justify-center overflow-auto md:pl-[300px] ${(isEditMode || isMeasuring) ? 'touch-none' : ''}`}>
+      {/* ZMIANA: Dodano md:pl-[300px] by ekran powitalny nie wjeżdżał pod lewy panel */}
+      <div className="absolute inset-0 z-10 flex items-center justify-center overflow-auto touch-none md:pl-[300px]">
         {(!installations.floors || installations.floors.length === 0) && (
           <div className="max-w-3xl w-full mx-auto px-8 z-20">
              <div className="aspect-video bg-slate-900 rounded-3xl overflow-hidden shadow-2xl relative mb-10 group cursor-pointer border-8 border-slate-800 ring-4 ring-white/50">
@@ -381,8 +382,8 @@ export default function Editor({ project, onSaveProject, onClose }) {
         )}
 
         {installations.floors?.length > 0 && (
-          <div className="relative shadow-[0_0_50px_rgba(0,0,0,0.1)] bg-white border border-slate-200 ring-8 ring-white/50 rounded-lg overflow-auto mt-20 md:mt-0">
-            <canvas ref={canvasRef} onMouseDown={handlePointerDown} onMouseMove={handlePointerMove} onMouseUp={handlePointerUp} onMouseLeave={handlePointerUp} onTouchStart={handlePointerDown} onTouchMove={handlePointerMove} onTouchEnd={handlePointerUp} className={`max-w-full max-h-[85vh] ${(isEditMode || isMeasuring) ? 'cursor-crosshair' : 'cursor-default'}`} style={{ touchAction: (isEditMode || isMeasuring) ? 'none' : undefined }} />
+          <div className="relative shadow-[0_0_50px_rgba(0,0,0,0.1)] bg-white border border-slate-200 ring-8 ring-white/50 rounded-lg overflow-hidden mt-20 md:mt-0">
+            <canvas ref={canvasRef} onMouseDown={handlePointerDown} onMouseMove={handlePointerMove} onMouseUp={handlePointerUp} onMouseLeave={handlePointerUp} onTouchStart={handlePointerDown} onTouchMove={handlePointerMove} onTouchEnd={handlePointerUp} className={`max-w-full max-h-[85vh] ${(isEditMode || isMeasuring) ? 'cursor-crosshair' : 'cursor-default'}`} style={{ touchAction: 'none' }} />
           </div>
         )}
       </div>
@@ -398,13 +399,9 @@ export default function Editor({ project, onSaveProject, onClose }) {
          cancelEditMode={cancelEditMode}
          toggleMeasureMode={toggleMeasureMode}
          handleExportData={handleExportData}
-         isSidebarOpen={isSidebarOpen}
-         setIsSidebarOpen={setIsSidebarOpen}
       />
 
       <LeftSidebar 
-         isSidebarOpen={isSidebarOpen}
-         setIsSidebarOpen={setIsSidebarOpen}
          installations={installations}
          activeFloor={activeFloor}
          setActiveFloor={setActiveFloor}
@@ -451,6 +448,8 @@ export default function Editor({ project, onSaveProject, onClose }) {
           <div className="w-3 h-3 bg-slate-900/95 border-r border-b border-slate-700 transform rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2"></div>
         </div>
       )}
+
+      {showAi && <AiAssistant setShowAi={setShowAi} />}
 
     </div>
   );
