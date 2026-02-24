@@ -1,15 +1,16 @@
 import React from 'react';
-import { ArrowLeft, BarChart2, PenTool, XCircle, Save, Download, Ruler, Sparkles } from 'lucide-react';
+import { ArrowLeft, Menu, BarChart2, PenTool, XCircle, Save, Download, Ruler } from 'lucide-react';
 
 export default function TopToolbar({
   projectName, onClose, isEditMode, isMeasuring, showStats, setShowStats,
-  showAi, setShowAi,
-  toggleEditMode, cancelEditMode, toggleMeasureMode, handleExportData
+  toggleEditMode, cancelEditMode, toggleMeasureMode, handleExportData,
+  isSidebarOpen, setIsSidebarOpen
 }) {
   return (
     <div className="absolute top-4 left-4 right-4 z-40 pointer-events-none flex justify-between items-start">
        <div className="bg-white/90 backdrop-blur-xl shadow-lg border border-slate-200 rounded-2xl p-2.5 flex items-center gap-4 pointer-events-auto">
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition"><ArrowLeft size={20}/></button>
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition" aria-label="Menu"><Menu size={20}/></button>
           <div className="h-6 w-px bg-slate-200"></div>
           <div>
             <h1 className="font-black text-slate-800 text-lg leading-none tracking-tight">{projectName}</h1>
@@ -21,31 +22,9 @@ export default function TopToolbar({
          <div className="bg-white/90 backdrop-blur-xl shadow-lg border border-slate-200 rounded-2xl p-1.5 flex gap-1">
            {!isEditMode && !isMeasuring ? (
              <>
-               <button
-                 onClick={() => setShowStats(!showStats)}
-                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition ${
-                   showStats ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
-                 }`}
-               >
-                 <BarChart2 size={16}/> Kosztorys
-               </button>
-               <button
-                 onClick={() => setShowAi(!showAi)}
-                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition border ${
-                   showAi
-                     ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-transparent shadow-md shadow-violet-200'
-                     : 'text-violet-700 border-violet-200 bg-violet-50 hover:bg-violet-100 hover:border-violet-300'
-                 }`}
-               >
-                 <Sparkles size={16}/> Zapytaj AI
-               </button>
+               <button onClick={() => setShowStats(!showStats)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition ${showStats ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}><BarChart2 size={16}/> Kosztorys</button>
                <div className="w-px bg-slate-200 mx-1 my-1"></div>
-               <button
-                 onClick={toggleEditMode}
-                 className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-md shadow-indigo-200"
-               >
-                 <PenTool size={16}/> Projektuj
-               </button>
+               <button onClick={toggleEditMode} className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-md shadow-indigo-200"><PenTool size={16}/> Projektuj</button>
              </>
            ) : isEditMode ? (
              <>
