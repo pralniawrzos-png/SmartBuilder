@@ -1,14 +1,21 @@
 import React from 'react';
-import { ArrowLeft, BarChart2, PenTool, XCircle, Save, Download, Ruler } from 'lucide-react';
+import { ArrowLeft, BarChart2, PenTool, XCircle, Save, Download, Ruler, Menu, X } from 'lucide-react';
 
 export default function TopToolbar({
   projectName, onClose, isEditMode, isMeasuring, showStats, setShowStats,
-  toggleEditMode, cancelEditMode, toggleMeasureMode, handleExportData
+  toggleEditMode, cancelEditMode, toggleMeasureMode, handleExportData,
+  isSidebarOpen, setIsSidebarOpen
 }) {
   return (
     <div className="absolute top-4 left-4 right-4 z-40 pointer-events-none flex justify-between items-start">
        <div className="bg-white/90 backdrop-blur-xl shadow-lg border border-slate-200 rounded-2xl p-2.5 flex items-center gap-4 pointer-events-auto">
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition"><ArrowLeft size={20}/></button>
+          <button
+            onClick={() => setIsSidebarOpen(prev => !prev)}
+            className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition md:hidden"
+          >
+            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
           <div className="h-6 w-px bg-slate-200"></div>
           <div>
             <h1 className="font-black text-slate-800 text-lg leading-none tracking-tight">{projectName}</h1>

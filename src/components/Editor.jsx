@@ -85,6 +85,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
 
   const [showStats, setShowStats] = useState(false);
   const [showAi, setShowAi] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!activeFloor || !installations.floors) { setBgImage(null); setImageLoaded(false); return; }
@@ -382,8 +383,19 @@ export default function Editor({ project, onSaveProject, onClose }) {
         )}
 
         {installations.floors?.length > 0 && (
-          <div className="relative shadow-[0_0_50px_rgba(0,0,0,0.1)] bg-white border border-slate-200 ring-8 ring-white/50 rounded-lg overflow-hidden mt-20 md:mt-0">
-            <canvas ref={canvasRef} onMouseDown={handlePointerDown} onMouseMove={handlePointerMove} onMouseUp={handlePointerUp} onMouseLeave={handlePointerUp} onTouchStart={handlePointerDown} onTouchMove={handlePointerMove} onTouchEnd={handlePointerUp} className={`max-w-full max-h-[85vh] ${(isEditMode || isMeasuring) ? 'cursor-crosshair' : 'cursor-default'}`} style={{ touchAction: 'none' }} />
+          <div className="relative shadow-[0_0_50px_rgba(0,0,0,0.1)] bg-white border border-slate-200 ring-8 ring-white/50 rounded-lg overflow-auto mt-20 md:mt-0">
+            <canvas
+              ref={canvasRef}
+              onMouseDown={handlePointerDown}
+              onMouseMove={handlePointerMove}
+              onMouseUp={handlePointerUp}
+              onMouseLeave={handlePointerUp}
+              onTouchStart={handlePointerDown}
+              onTouchMove={handlePointerMove}
+              onTouchEnd={handlePointerUp}
+              className={`max-w-full max-h-[85vh] ${(isEditMode || isMeasuring) ? 'cursor-crosshair' : 'cursor-default'}`}
+              style={{ touchAction: (isEditMode || isMeasuring) ? 'none' : 'auto' }}
+            />
           </div>
         )}
       </div>
@@ -395,6 +407,8 @@ export default function Editor({ project, onSaveProject, onClose }) {
          isMeasuring={isMeasuring}
          showStats={showStats}
          setShowStats={setShowStats}
+         isSidebarOpen={isSidebarOpen}
+         setIsSidebarOpen={setIsSidebarOpen}
          toggleEditMode={toggleEditMode}
          cancelEditMode={cancelEditMode}
          toggleMeasureMode={toggleMeasureMode}
@@ -421,6 +435,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
          setSelectedElement={setSelectedElement}
          projectWidthM={projectWidthM}
          setProjectWidthM={setProjectWidthM}
+         isSidebarOpen={isSidebarOpen}
       />
 
       {isEditMode && <BottomTools activeEditLayer={activeEditLayer} addNewElement={addNewElement} />}
