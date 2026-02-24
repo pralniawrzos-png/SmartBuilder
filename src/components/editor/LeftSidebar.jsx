@@ -7,14 +7,13 @@ const CheckIcon = ({size, className}) => (
 );
 
 export default function LeftSidebar({
-  isSidebarOpen, setIsSidebarOpen,
   installations, activeFloor, setActiveFloor, addFloor, deleteFloor,
   editingFloorName, setEditingFloorName, newFloorName, setNewFloorName, saveFloorName,
   isEditMode, isMeasuring, activeLayers, setActiveLayers, activeEditLayer, setActiveEditLayer,
   setSelectedElement, projectWidthM, setProjectWidthM
 }) {
   return (
-    <div className={`absolute md:relative top-24 md:top-24 left-4 bottom-4 w-72 z-50 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[150%] md:translate-x-0'} pointer-events-none flex flex-col gap-4`}>
+    <div className="absolute top-24 left-4 bottom-4 w-72 z-40 pointer-events-none flex flex-col gap-4">
        <div className="bg-white/90 backdrop-blur-xl shadow-xl border border-slate-200 rounded-3xl p-5 pointer-events-auto flex flex-col overflow-hidden max-h-full">
          
          {/* Sekcja Kondygnacji */}
