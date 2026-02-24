@@ -1,68 +1,66 @@
-import React from 'react';
-import { Bot, X, Send } from 'lucide-react';
+import React, { useState } from 'react';
 
-export default function AiAssistant({ showAi, setShowAi }) {
-  if (!showAi) return null;
+const DEFAULT_MESSAGE = { role: 'ai', text: 'Cześć! Jestem Twoim wirtualnym inżynierem. W czym mogę pomóc?' };
+
+export default function AiAssistant() {
+  const [messages, setMessages] = useState([DEFAULT_MESSAGE]);
+  const [inputValue, setInputValue] = useState('');
+
+  const handleSend = () => {
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+
+    setMessages(prev => [...prev, { role: 'user', text: trimmed }]);
+    setInputValue('');
+
+    setTimeout(() => {
+      setMessages(prev => [...prev, { role: 'ai', text: 'Analizuję Twój projekt, daj mi chwilkę...' }]);
+    }, 1000);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   return (
-    <div className="absolute bottom-6 right-6 z-50 w-[350px] h-[500px] bg-white shadow-2xl rounded-3xl border border-slate-200 flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="px-4 py-3 bg-slate-900 text-white flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-md">
-            <Bot size={18} />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold leading-tight">Asystent SmartBuilder</span>
-            <span className="text-[11px] text-slate-200 leading-tight font-medium">
-              Wirtualny inżynier instalacji
-            </span>
-          </div>
-        </div>
-        <button
-          onClick={() => setShowAi(false)}
-          className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
-        >
-          <X size={16} />
-        </button>
-      </div>
-
-      {/* Messages area */}
-      <div className="flex-1 px-4 py-3 space-y-3 overflow-y-auto bg-slate-50">
-        <div className="flex items-start gap-2">
-          <div className="mt-0.5 w-7 h-7 rounded-2xl bg-indigo-500 flex items-center justify-center text-white shadow">
-            <Bot size={16} />
-          </div>
-          <div className="max-w-[260px] rounded-2xl rounded-tl-sm bg-indigo-50 text-slate-800 px-3 py-2.5 text-sm shadow-sm border border-indigo-100">
-            Cześć! Jestem Twoim wirtualnym inżynierem. W czym mogę pomóc? Przeanalizować koszty czy doradzić z trasą
-            kabli?
-          </div>
-        </div>
-      </div>
-
-      {/* Footer input */}
-      <div className="px-3 py-2.5 border-t border-slate-200 bg-white">
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Napisz swoje pytanie..."
-            className="flex-1 text-sm px-3 py-2 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-400"
-          />
-          <button
-            type="submit"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-md shadow-indigo-200"
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <Send size={14} />
-            Wyślij
-          </button>
-        </form>
+            <div
+              className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm font-medium ${
+                msg.role === 'user'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-slate-200 text-slate-800'
+              }`}
+            >
+              {msg.text}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="p-3 border-t border-slate-200 flex gap-2">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={e => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Napisz wiadomość..."
+          className="flex-1 px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-slate-800 placeholder:text-slate-400"
+        />
+        <button
+          onClick={handleSend}
+          className="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition"
+        >
+          Wyślij
+        </button>
       </div>
     </div>
   );
 }
-
