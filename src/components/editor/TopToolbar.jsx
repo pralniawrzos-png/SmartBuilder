@@ -1,8 +1,9 @@
 import React from 'react';
-import { ArrowLeft, BarChart2, PenTool, XCircle, Save, Download, Ruler } from 'lucide-react';
+import { ArrowLeft, BarChart2, PenTool, XCircle, Save, Download, Ruler, Sparkles } from 'lucide-react';
 
 export default function TopToolbar({
   projectName, onClose, isEditMode, isMeasuring, showStats, setShowStats,
+  showAi, setShowAi,
   toggleEditMode, cancelEditMode, toggleMeasureMode, handleExportData
 }) {
   return (
@@ -20,9 +21,31 @@ export default function TopToolbar({
          <div className="bg-white/90 backdrop-blur-xl shadow-lg border border-slate-200 rounded-2xl p-1.5 flex gap-1">
            {!isEditMode && !isMeasuring ? (
              <>
-               <button onClick={() => setShowStats(!showStats)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition ${showStats ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}><BarChart2 size={16}/> Kosztorys</button>
+               <button
+                 onClick={() => setShowStats(!showStats)}
+                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition ${
+                   showStats ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
+                 }`}
+               >
+                 <BarChart2 size={16}/> Kosztorys
+               </button>
+               <button
+                 onClick={() => setShowAi(!showAi)}
+                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition border ${
+                   showAi
+                     ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-transparent shadow-md shadow-violet-200'
+                     : 'text-violet-700 border-violet-200 bg-violet-50 hover:bg-violet-100 hover:border-violet-300'
+                 }`}
+               >
+                 <Sparkles size={16}/> Zapytaj AI
+               </button>
                <div className="w-px bg-slate-200 mx-1 my-1"></div>
-               <button onClick={toggleEditMode} className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-md shadow-indigo-200"><PenTool size={16}/> Projektuj</button>
+               <button
+                 onClick={toggleEditMode}
+                 className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-md shadow-indigo-200"
+               >
+                 <PenTool size={16}/> Projektuj
+               </button>
              </>
            ) : isEditMode ? (
              <>

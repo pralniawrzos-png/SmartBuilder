@@ -10,6 +10,7 @@ import LeftSidebar from './editor/LeftSidebar';
 import BottomTools from './editor/BottomTools';
 import RightProperties from './editor/RightProperties';
 import StatsPanel from './editor/StatsPanel';
+import AiAssistant from './editor/AiAssistant';
 
 export default function Editor({ project, onSaveProject, onClose }) {
   const canvasRef = useRef(null);
@@ -83,6 +84,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const [projectWidthM, setProjectWidthM] = useState(10); 
 
   const [showStats, setShowStats] = useState(false);
+  const [showAi, setShowAi] = useState(false);
 
   useEffect(() => {
     if (!activeFloor || !installations.floors) { setBgImage(null); setImageLoaded(false); return; }
@@ -338,6 +340,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
       {imageLoaded && <div className="absolute inset-0 pointer-events-none opacity-40 z-0" style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>}
 
       <StatsPanel showStats={showStats} setShowStats={setShowStats} currentStats={currentStats} />
+      <AiAssistant showAi={showAi} setShowAi={setShowAi} />
 
       {/* ZMIANA: Dodano md:pl-[300px] by ekran powitalny nie wjeżdżał pod lewy panel */}
       <div className="absolute inset-0 z-10 flex items-center justify-center overflow-auto touch-none md:pl-[300px]">
@@ -393,6 +396,8 @@ export default function Editor({ project, onSaveProject, onClose }) {
          isMeasuring={isMeasuring}
          showStats={showStats}
          setShowStats={setShowStats}
+         showAi={showAi}
+         setShowAi={setShowAi}
          toggleEditMode={toggleEditMode}
          cancelEditMode={cancelEditMode}
          toggleMeasureMode={toggleMeasureMode}
