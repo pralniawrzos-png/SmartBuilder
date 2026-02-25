@@ -84,7 +84,6 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const [projectWidthM, setProjectWidthM] = useState(10); 
 
   const [showStats, setShowStats] = useState(false);
-  const [showAi, setShowAi] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -464,7 +463,12 @@ export default function Editor({ project, onSaveProject, onClose }) {
         </div>
       )}
 
-      {showAi && <AiAssistant setShowAi={setShowAi} />}
+      <AiAssistant
+        installations={installations}
+        setInstallations={setInstallations}
+        activeFloor={activeFloor}
+        currentImage={project.images?.[activeFloor]}
+      />
 
     </div>
   );
