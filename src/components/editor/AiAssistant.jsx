@@ -162,13 +162,12 @@ MUSISZ ZAWSZE odpowiadać w formacie JSON zawierającym:
 
   if (!isOpen) {
     return (
-      <button
-        type="button"
+      <div
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full shadow-2xl flex items-center justify-center text-white cursor-pointer z-[100]"
       >
-        <Bot size={24} />
-      </button>
+        <Bot size={28} />
+      </div>
     );
   }
 
