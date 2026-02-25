@@ -334,7 +334,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const currentStats = calculateStats(installations, bgImage, projectWidthM);
 
   return (
-    <div className="flex h-screen bg-[#F0F2F5] font-sans overflow-hidden relative w-full text-slate-800">
+    <div className="flex h-screen bg-[#F0F2F5] font-sans overflow-auto md:overflow-hidden relative w-full text-slate-800">
       
       {/* 🔴 TŁO KROPKOWE DLA CANVASU */}
       {imageLoaded && <div className="absolute inset-0 pointer-events-none opacity-40 z-0" style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>}
@@ -342,7 +342,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
       <StatsPanel showStats={showStats} setShowStats={setShowStats} currentStats={currentStats} />
 
       {/* ZMIANA: Dodano md:pl-[300px] by ekran powitalny nie wjeżdżał pod lewy panel */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center overflow-auto touch-none md:pl-[300px]">
+      <div className="absolute inset-0 z-10 flex items-center justify-center overflow-auto md:pl-[300px]">
         {(!installations.floors || installations.floors.length === 0) && (
           <div className="max-w-3xl w-full mx-auto px-8 z-20">
              <div className="aspect-video bg-slate-900 rounded-3xl overflow-hidden shadow-2xl relative mb-10 group cursor-pointer border-8 border-slate-800 ring-4 ring-white/50">
