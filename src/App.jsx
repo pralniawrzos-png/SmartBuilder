@@ -41,6 +41,26 @@ export default function App() {
     const newId = `proj_${Date.now()}`;
     
     const emptyData = {
+      parter: {
+        strefy: [],
+        co: [],
+        wodkan: [],
+        woda: [],
+        kanalizacja: [],
+        elektryka_punkty: [],
+        elektryka_trasy: [],
+        wentylacja: []
+      },
+      pietro: {
+        strefy: [],
+        co: [],
+        wodkan: [],
+        woda: [],
+        kanalizacja: [],
+        elektryka_punkty: [],
+        elektryka_trasy: [],
+        wentylacja: []
+      },
       floors: []
     };
 

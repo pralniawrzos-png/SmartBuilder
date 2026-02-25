@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Edit2, Trash2, Ruler, Save } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save } from 'lucide-react';
 import { LAYER_CONFIG } from '../../config';
 
 const CheckIcon = ({size, className}) => (
@@ -10,7 +10,7 @@ export default function LeftSidebar({
   installations, activeFloor, setActiveFloor, addFloor, deleteFloor,
   editingFloorName, setEditingFloorName, newFloorName, setNewFloorName, saveFloorName,
   isEditMode, isMeasuring, activeLayers, setActiveLayers, activeEditLayer, setActiveEditLayer,
-  setSelectedElement, projectWidthM, setProjectWidthM, isSidebarOpen
+  setSelectedElement, isSidebarOpen
 }) {
   return (
     <div className={`absolute md:relative top-24 left-4 bottom-4 w-72 z-40 pointer-events-none flex flex-col gap-4 transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
@@ -105,14 +105,6 @@ export default function LeftSidebar({
             )}
          </div>
 
-         {/* Narzędzie Miarki (Gdy Aktywne) */}
-         {isMeasuring && (
-           <div className="mt-4 pt-4 border-t border-slate-100 shrink-0">
-             <h3 className="font-bold text-indigo-600 text-xs mb-2 flex items-center gap-1.5 uppercase tracking-wide"><Ruler size={14}/> Kalibracja skali</h3>
-             <label className="text-[10px] font-bold text-slate-500 block mb-1">Rzeczywista szer. rzutu (m)</label>
-             <input type="number" value={projectWidthM} onChange={e => setProjectWidthM(parseFloat(e.target.value) || 1)} className="w-full text-sm font-bold text-slate-800 p-2 rounded-xl border-2 border-indigo-100 bg-indigo-50 focus:border-indigo-500 outline-none transition" />
-           </div>
-         )}
        </div>
     </div>
   );

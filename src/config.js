@@ -1,6 +1,7 @@
-import { Droplets, Flame, Zap, Activity, Wind } from 'lucide-react';
+import { Droplets, Flame, Zap, Activity, Wind, Layers } from 'lucide-react';
 
 export const LAYER_CONFIG = {
+  strefy: { name: 'Obrysy i Strefy', Icon: Layers, color: '#94a3b8', group: 'Architektura' },
   co: { name: 'Ogrzewanie', Icon: Flame, color: '#ef4444', group: 'Klimatyzacja i Ogrzewanie' },
   wentylacja: { name: 'Rekuperacja', Icon: Wind, color: '#22c55e', group: 'Klimatyzacja i Ogrzewanie' },
   woda: { name: 'Instalacja Wodna', Icon: Droplets, color: '#0ea5e9', group: 'Wodno-Kanalizacyjne' },

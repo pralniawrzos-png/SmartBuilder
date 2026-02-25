@@ -3,7 +3,13 @@ import { Settings, Trash2, PaintBucket, Plus } from 'lucide-react';
 import { LAYER_CONFIG } from '../../config';
 
 export default function RightProperties({
-  currentSelObj, activeEditLayer, updateSelectedProperty, deleteSelected, addNodeToLine
+  currentSelObj,
+  activeEditLayer,
+  updateSelectedProperty,
+  deleteSelected,
+  addNodeToLine,
+  removeNodeFromLine,
+  setSelectedElement,
 }) {
   if (!currentSelObj) return null;
 
@@ -41,10 +47,28 @@ export default function RightProperties({
           </div>
           
           {(currentSelObj.type === 'line' || currentSelObj.type === 'polygon') && (
-            <button onClick={addNodeToLine} className="w-full py-3 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-xl font-bold text-xs mt-2 hover:bg-indigo-100 hover:border-indigo-200 transition shadow-sm flex items-center justify-center gap-2">
-              <Plus size={14}/> Dodaj Węzeł Ścieżki
-            </button>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={addNodeToLine}
+                className="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs hover:bg-blue-700 transition"
+              >
+                + Dodaj węzeł
+              </button>
+              <button
+                onClick={removeNodeFromLine}
+                className="flex-1 py-2 bg-red-100 text-red-700 rounded font-bold text-xs hover:bg-red-200 transition border border-red-200"
+              >
+                - Usuń węzeł
+              </button>
+            </div>
           )}
+
+          <button
+            onClick={() => setSelectedElement(null)}
+            className="w-full py-3 bg-emerald-500 text-white rounded-lg font-bold text-sm mt-4 hover:bg-emerald-600 transition shadow-md"
+          >
+            ✔ Zatwierdź obiekt
+          </button>
         </div>
       </div>
     </div>

@@ -16,6 +16,8 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const canvasRef = useRef(null);
   const [bgImage, setBgImage] = useState(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
+  const [isWizardMinimized, setIsWizardMinimized] = useState(false);
   
   const [installations, setInstallations] = useState(() => {
     const data = project.data ? JSON.parse(JSON.stringify(project.data)) : JSON.parse(JSON.stringify(DEFAULT_DATA));
@@ -29,6 +31,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
           }
           if (!floor.data.woda) floor.data.woda = [];
           if (!floor.data.kanalizacja) floor.data.kanalizacja = [];
+          if (!floor.data.strefy) floor.data.strefy = [];
        });
     }
     return data;
@@ -50,6 +53,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
           }
           if (!floor.data.woda) floor.data.woda = [];
           if (!floor.data.kanalizacja) floor.data.kanalizacja = [];
+          if (!floor.data.strefy) floor.data.strefy = [];
       });
       
       setInstallations({ floors: migratedFloors });
@@ -68,7 +72,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
     }
   }, [installations.floors, activeFloor]);
   
-  const [activeLayers, setActiveLayers] = useState({ co: false, wentylacja: false, woda: false, kanalizacja: false, elektryka_punkty: false, elektryka_trasy: false });
+  const [activeLayers, setActiveLayers] = useState({ strefy: true, co: false, wentylacja: false, woda: false, kanalizacja: false, elektryka_punkty: false, elektryka_trasy: false });
   const [previousLayers, setPreviousLayers] = useState(null);
   
   const [isEditMode, setIsEditMode] = useState(false);
@@ -78,6 +82,8 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const [hoverInfo, setHoverInfo] = useState(null);
 
   const [isMeasuring, setIsMeasuring] = useState(false);
+  const [measureMode, setMeasureMode] = useState(null); // 'measure' | 'calibrate' | null
+  const [activeTool, setActiveTool] = useState(null); // 'measure' | 'calibrate' | null
   const [measureStart, setMeasureStart] = useState(null);
   const [measureEnd, setMeasureEnd] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -115,13 +121,14 @@ export default function Editor({ project, onSaveProject, onClose }) {
         });
       };
       reader.readAsDataURL(file);
+      setOnboardingStep(1);
     }
     e.target.value = null;
   };
 
   const addFloor = () => {
     const newId = `floor_${Date.now()}`;
-    const emptyData = { co: [], wentylacja: [], woda: [], kanalizacja: [], elektryka_punkty: [], elektryka_trasy: [] };
+    const emptyData = { strefy: [], co: [], wentylacja: [], woda: [], kanalizacja: [], elektryka_punkty: [], elektryka_trasy: [] };
     setInstallations(prev => ({ ...prev, floors: [...(prev.floors || []), { id: newId, name: `Nowa Kondygnacja`, image: null, data: emptyData }] }));
     setActiveFloor(newId);
   };
@@ -152,12 +159,23 @@ export default function Editor({ project, onSaveProject, onClose }) {
       setBackupInstallations(JSON.parse(JSON.stringify(installations)));
       setPreviousLayers({ ...activeLayers });
       setIsMeasuring(false);
+      setMeasureMode(null);
+      setActiveTool(null);
+      setMeasureStart(null);
+      setMeasureEnd(null);
       setShowStats(false);
       const isolatedLayers = Object.keys(LAYER_CONFIG).reduce((acc, k) => ({...acc, [k]: k === activeEditLayer}), {});
       setActiveLayers(isolatedLayers);
       setIsEditMode(true);
     } else {
-      setIsEditMode(false); setBackupInstallations(null); setSelectedElement(null);
+      setIsEditMode(false);
+      setBackupInstallations(null);
+      setSelectedElement(null);
+      setIsMeasuring(false);
+      setMeasureMode(null);
+      setActiveTool(null);
+      setMeasureStart(null);
+      setMeasureEnd(null);
       if (previousLayers) setActiveLayers(previousLayers); 
     }
   };
@@ -165,13 +183,29 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const cancelEditMode = () => {
     if(window.confirm('Na pewno anulować zmiany?')) {
       setInstallations(backupInstallations); setIsEditMode(false); setBackupInstallations(null); setSelectedElement(null);
+      setIsMeasuring(false);
+      setMeasureMode(null);
+      setMeasureStart(null);
+      setMeasureEnd(null);
       if (previousLayers) setActiveLayers(previousLayers);
     }
   };
 
-  const toggleMeasureMode = () => {
-    setIsMeasuring(!isMeasuring); setMeasureStart(null); setMeasureEnd(null);
-    if (!isMeasuring && isEditMode) toggleEditMode(); 
+  const handleSelectMeasureTool = (mode) => {
+    if (!isEditMode) return;
+    if (activeTool === mode) {
+      setActiveTool(null);
+      setMeasureMode(null);
+      setIsMeasuring(false);
+      setMeasureStart(null);
+      setMeasureEnd(null);
+      return;
+    }
+    setActiveTool(mode);
+    setMeasureMode(mode);
+    setIsMeasuring(true);
+    setMeasureStart(null);
+    setMeasureEnd(null);
   };
 
   const getPointerPos = (e) => {
@@ -191,8 +225,41 @@ export default function Editor({ project, onSaveProject, onClose }) {
 
   const handlePointerDown = (e) => {
     const pos = getPointerPos(e);
-    if (isMeasuring) {
-      if (!measureStart || measureEnd) { setMeasureStart(pos); setMeasureEnd(null); } else { setMeasureEnd(pos); }
+    if (isEditMode && activeTool) {
+      if (!measureStart || measureEnd) {
+        setMeasureStart(pos);
+        setMeasureEnd(null);
+      } else {
+        setMeasureEnd(pos);
+
+        setTimeout(() => {
+          // UWAGA: Dopasowany warunek do narzędzia kalibracji
+          if ((activeTool === 'calibrate' || activeTool === 'kalibracja') && measureStart) {
+            const realLen = window.prompt("Podaj rzeczywistą długość zaznaczonego odcinka w metrach (np. 10.5):");
+            const parsedRealLen = realLen !== null ? parseFloat(String(realLen).replace(',', '.')) : NaN;
+            if (realLen && !isNaN(parsedRealLen)) {
+              const canvas = canvasRef.current;
+              const canvasHeight = canvas ? canvas.height : 1;
+              const canvasWidth = canvas ? canvas.width : 1;
+              const dx = pos.x - measureStart.x;
+              const dy = (pos.y - measureStart.y) * (canvasHeight / canvasWidth);
+              const fraction = Math.hypot(dx, dy);
+
+              if (fraction > 0) {
+                const newWidth = parsedRealLen / fraction;
+                setProjectWidthM(newWidth);
+                alert("Skala została pomyślnie zaktualizowana!");
+              }
+            }
+          }
+          // Po pomiarze lub kalibracji resetujemy zmienne
+          setMeasureStart(null);
+          setMeasureEnd(null);
+          setIsMeasuring(false);
+          setActiveTool(null);
+          setMeasureMode(null);
+        }, 100); // 100ms opóźnienia to klucz do działania window.prompt w React!
+      }
       return;
     }
     if (!isEditMode || !canvasRef.current || !activeFloor) return;
@@ -260,6 +327,10 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const addNewElement = (type) => {
     if (!activeEditLayer || !activeFloor) return;
     const newEl = { id: `el_${Date.now()}`, type, color: LAYER_CONFIG[activeEditLayer].color, label: 'Nowy Obiekt', desc: '' };
+    if (type === 'polygon' && activeEditLayer === 'strefy') {
+      newEl.label = 'Obrys zewnętrzny';
+      newEl.desc = 'Zaznaczona przybliżona zewnętrzna powierzchnia budynku';
+    }
     if(type === 'circle') { newEl.x = 0.5; newEl.y = 0.5; newEl.r = 0.015; }
     if(type === 'rect') { newEl.x = 0.5; newEl.y = 0.5; newEl.w = 0.03; newEl.h = 0.03; }
     if(type === 'line') { newEl.points = [[0.4, 0.5], [0.6, 0.5]]; newEl.thickness = 3; }
@@ -294,6 +365,26 @@ export default function Editor({ project, onSaveProject, onClose }) {
       if (el.points && el.points.length > 0) {
         const lastP = el.points[el.points.length - 1];
         el.points.push([lastP[0] + 0.05, lastP[1] + 0.05]);
+      }
+      return copy;
+    });
+  };
+
+  const removeNodeFromLine = () => {
+    if (!selectedElement || !activeFloor) return;
+    setInstallations(prev => {
+      const copy = JSON.parse(JSON.stringify(prev));
+      const floorIndex = copy.floors.findIndex(f => f.id === activeFloor);
+      if (floorIndex === -1) return copy;
+      const el = copy.floors[floorIndex].data[selectedElement.layerKey][selectedElement.index];
+      if (el && el.points) {
+        if (el.type === 'line' && el.points.length > 2) {
+          el.points.pop();
+        } else if (el.type === 'polygon' && el.points.length > 3) {
+          el.points.pop();
+        } else {
+          alert("Nie można usunąć więcej węzłów z tego obiektu.");
+        }
       }
       return copy;
     });
@@ -341,8 +432,12 @@ export default function Editor({ project, onSaveProject, onClose }) {
 
       <StatsPanel showStats={showStats} setShowStats={setShowStats} currentStats={currentStats} />
 
-      {/* ZMIANA: Dodano md:pl-[300px] by ekran powitalny nie wjeżdżał pod lewy panel */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center overflow-auto md:pl-[300px]">
+      {/* ZMIANA: Dodano pełne centrowanie z 100dvh oraz warunkowe md:pl-[300px] tylko gdy lewy panel jest widoczny */}
+      <div
+        className={`absolute inset-0 z-10 flex flex-col items-center justify-center p-4 mt-14 md:mt-0 h-[calc(100dvh-3.5rem)] md:h-screen overflow-y-auto ${
+          imageLoaded ? 'md:pl-[300px]' : ''
+        }`}
+      >
         {(!installations.floors || installations.floors.length === 0) && (
           <div className="max-w-3xl w-full mx-auto px-8 z-20">
              <div className="aspect-video bg-slate-900 rounded-3xl overflow-hidden shadow-2xl relative mb-10 group cursor-pointer border-8 border-slate-800 ring-4 ring-white/50">
@@ -399,45 +494,125 @@ export default function Editor({ project, onSaveProject, onClose }) {
         )}
       </div>
 
+      {(onboardingStep === 1 || onboardingStep === 2) && (
+        <>
+          {isWizardMinimized ? (
+            <button
+              className="absolute top-20 right-4 z-40 bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs cursor-pointer shadow-md hover:bg-indigo-700 transition"
+              onClick={() => setIsWizardMinimized(false)}
+            >
+              Pokaż instrukcję
+            </button>
+          ) : (
+            <div className="absolute top-20 right-4 z-40 bg-white text-slate-800 p-5 rounded-2xl shadow-2xl w-80 border-l-4 border-indigo-600 flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  {onboardingStep === 1 && (
+                    <h3 className="text-sm font-extrabold text-slate-900">
+                      Krok 1/2: Obrys budynku 🏠
+                    </h3>
+                  )}
+                  {onboardingStep === 2 && (
+                    <h3 className="text-sm font-extrabold text-slate-900">
+                      Krok 2/2: Skala projektu 📏
+                    </h3>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="text-xs text-slate-500 hover:text-slate-800 px-2 py-1 rounded-md hover:bg-slate-100"
+                  onClick={() => setIsWizardMinimized(true)}
+                >
+                  Zwiń
+                </button>
+              </div>
+
+              {onboardingStep === 1 && (
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Krok 1/2: Obrys budynku 🏠. Wejdź w tryb
+                  {' '}<span className="font-semibold">„Projektuj”</span> (prawy górny róg),
+                  wybierz warstwę <span className="font-semibold">„Obrysy i Strefy”</span> i użyj
+                  narzędzia <span className="font-semibold">Strefa</span>, aby zaznaczyć obrys
+                  zewnętrzny budynku.
+                </p>
+              )}
+
+              {onboardingStep === 2 && (
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  W trybie <span className="font-semibold">„Projektuj”</span> wybierz narzędzie
+                  {' '}<span className="font-semibold">Kalibracja skali</span>, zaznacz na rzucie
+                  odcinek o znanej długości (np. ściana zewnętrzna), a po drugim kliknięciu wpisz
+                  jego rzeczywistą długość w metrach w wyświetlonym oknie.
+                </p>
+              )}
+
+              <div className="flex justify-end gap-2 pt-1">
+                {onboardingStep === 1 && (
+                  <button
+                    onClick={() => setOnboardingStep(2)}
+                    className="bg-indigo-600 text-white text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-indigo-700 transition"
+                  >
+                    Przejdź dalej
+                  </button>
+                )}
+                {onboardingStep === 2 && (
+                  <button
+                    onClick={() => setOnboardingStep(0)}
+                    className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition"
+                  >
+                    Zakończ
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       <TopToolbar 
          projectName={project.name}
          onClose={onClose}
          isEditMode={isEditMode}
-         isMeasuring={isMeasuring}
          showStats={showStats}
          setShowStats={setShowStats}
          isSidebarOpen={isSidebarOpen}
          setIsSidebarOpen={setIsSidebarOpen}
          toggleEditMode={toggleEditMode}
          cancelEditMode={cancelEditMode}
-         toggleMeasureMode={toggleMeasureMode}
          handleExportData={handleExportData}
       />
 
-      <LeftSidebar 
-         installations={installations}
-         activeFloor={activeFloor}
-         setActiveFloor={setActiveFloor}
-         addFloor={addFloor}
-         deleteFloor={deleteFloor}
-         editingFloorName={editingFloorName}
-         setEditingFloorName={setEditingFloorName}
-         newFloorName={newFloorName}
-         setNewFloorName={setNewFloorName}
-         saveFloorName={saveFloorName}
-         isEditMode={isEditMode}
-         isMeasuring={isMeasuring}
-         activeLayers={activeLayers}
-         setActiveLayers={setActiveLayers}
-         activeEditLayer={activeEditLayer}
-         setActiveEditLayer={setActiveEditLayer}
-         setSelectedElement={setSelectedElement}
-         projectWidthM={projectWidthM}
-         setProjectWidthM={setProjectWidthM}
-         isSidebarOpen={isSidebarOpen}
-      />
+      {imageLoaded && (
+        <LeftSidebar 
+           installations={installations}
+           activeFloor={activeFloor}
+           setActiveFloor={setActiveFloor}
+           addFloor={addFloor}
+           deleteFloor={deleteFloor}
+           editingFloorName={editingFloorName}
+           setEditingFloorName={setEditingFloorName}
+           newFloorName={newFloorName}
+           setNewFloorName={setNewFloorName}
+           saveFloorName={saveFloorName}
+           isEditMode={isEditMode}
+           isMeasuring={isMeasuring}
+           activeLayers={activeLayers}
+           setActiveLayers={setActiveLayers}
+           activeEditLayer={activeEditLayer}
+           setActiveEditLayer={setActiveEditLayer}
+           setSelectedElement={setSelectedElement}
+           isSidebarOpen={isSidebarOpen}
+        />
+      )}
 
-      {isEditMode && <BottomTools activeEditLayer={activeEditLayer} addNewElement={addNewElement} />}
+      {isEditMode && (
+        <BottomTools
+          activeEditLayer={activeEditLayer}
+          addNewElement={addNewElement}
+          measureMode={measureMode}
+          onSelectMeasureTool={handleSelectMeasureTool}
+        />
+      )}
 
       {isEditMode && currentSelObj && (
         <RightProperties 
@@ -446,6 +621,8 @@ export default function Editor({ project, onSaveProject, onClose }) {
           updateSelectedProperty={updateSelectedProperty}
           deleteSelected={deleteSelected}
           addNodeToLine={addNodeToLine}
+          removeNodeFromLine={removeNodeFromLine}
+          setSelectedElement={setSelectedElement}
         />
       )}
 
