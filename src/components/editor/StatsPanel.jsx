@@ -38,6 +38,29 @@ export default function StatsPanel({ showStats, setShowStats, currentStats }) {
                    <div className="grid grid-cols-1 gap-2.5">
                      {Object.entries(layers).map(([layer, data]) => {
                        const LayerIcon = LAYER_CONFIG[layer]?.Icon || Activity;
+                       // Jeśli warstwa ma strefy (zones), wyświetl je zamiast tras
+                       if (data.zones && data.zones.length > 0) {
+                         return (
+                           <div key={layer} className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm hover:border-indigo-200 transition-all group flex flex-col gap-2">
+                             <div className="flex items-center gap-2">
+                               <div className="w-6 h-6 rounded-md flex items-center justify-center text-white shadow-inner" style={{backgroundColor: LAYER_CONFIG[layer].color}}>
+                                 <LayerIcon size={12} />
+                               </div>
+                               <span className="font-bold text-slate-700 text-xs">{LAYER_CONFIG[layer].name}</span>
+                             </div>
+                             <div className="bg-blue-50 p-1.5 rounded-lg border border-blue-100 mt-2">
+                               <span className="text-[8px] uppercase font-bold text-blue-400">Strefy / Powierzchnie</span>
+                               {data.zones.map((zone, idx) => (
+                                 <div key={idx} className="flex justify-between text-xs text-slate-600 mt-1 pl-2 border-l-2 border-blue-200">
+                                   <span>{zone.label}</span>
+                                   <span className="font-bold text-slate-800">{zone.area} m²</span>
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
+                         );
+                       }
+                       // Dla urządzeń/punktów pokaż listę kosztów i sumę
                        return (
                          <div key={layer} className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm hover:border-indigo-200 transition-all group flex flex-col gap-2">
                            <div className="flex items-center gap-2">
@@ -46,16 +69,42 @@ export default function StatsPanel({ showStats, setShowStats, currentStats }) {
                              </div>
                              <span className="font-bold text-slate-700 text-xs">{LAYER_CONFIG[layer].name}</span>
                            </div>
-                           <div className="grid grid-cols-2 gap-2">
+                           <div className="grid grid-cols-2 gap-2 mb-2">
                              <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-100 flex justify-between items-center">
                                <span className="text-[8px] uppercase font-bold text-slate-400">Pkt/Urz</span>
                                <span className="font-black text-xs text-slate-700">{data.count}</span>
                              </div>
-                             <div className="bg-indigo-50/50 p-1.5 rounded-lg border border-indigo-50 flex justify-between items-center">
-                               <span className="text-[8px] uppercase font-bold text-indigo-400">Trasy</span>
-                               <span className="font-black text-xs text-indigo-700">{data.length}m</span>
-                             </div>
                            </div>
+                           {/* Lista urządzeń z kosztami */}
+                           {data.devices && data.devices.length > 0 && (
+                             <div className="bg-yellow-50 p-2 rounded-lg border border-yellow-100 mb-2">
+                               <span className="text-[8px] uppercase font-bold text-yellow-600">Urządzenia / Koszty</span>
+                               {data.devices.map((dev, idx) => (
+                                 <div key={idx} className="flex justify-between text-xs text-slate-700 mt-1 pl-2 border-l-2 border-yellow-300">
+                                   <span>{dev.label}</span>
+                                   <span className="font-bold text-slate-800">{dev.cost.toFixed(2)} PLN</span>
+                                 </div>
+                               ))}
+                             </div>
+                           )}
+                           {/* Lista tras z kosztami */}
+                           {data.groupedLines && data.groupedLines.length > 0 && (
+                             <div className="bg-indigo-50 p-2 rounded-lg border border-indigo-100 mb-2">
+                               <span className="text-[8px] uppercase font-bold text-indigo-600">Trasy / Koszty</span>
+                               {data.groupedLines.map((line, idx) => (
+                                 <div key={idx} className="flex justify-between text-xs text-slate-700 mt-1 pl-2 border-l-2 border-indigo-300">
+                                   <span>{line.label}</span>
+                                   <span>{line.length} mb | <span className="font-bold text-slate-800">{line.cost.toFixed(2)} PLN</span></span>
+                                 </div>
+                               ))}
+                             </div>
+                           )}
+                           {/* Podsumowanie kosztów */}
+                           {data.totalCost > 0 && (
+                             <div className="mt-2 pt-2 border-t border-yellow-200 text-right">
+                               <span className="font-bold text-yellow-700 text-sm">Suma kosztów: {data.totalCost.toFixed(2)} PLN</span>
+                             </div>
+                           )}
                          </div>
                        );
                      })}

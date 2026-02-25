@@ -76,7 +76,9 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const [previousLayers, setPreviousLayers] = useState(null);
   
   const [isEditMode, setIsEditMode] = useState(false);
-  const [activeEditLayer, setActiveEditLayer] = useState('co');
+  // Domyślnie warstwa obrysów jeśli istnieje, w przeciwnym razie pierwsza z LAYER_CONFIG
+  const defaultLayerKey = Object.keys(LAYER_CONFIG).find(k => LAYER_CONFIG[k].name === 'Obrys i Wymiary') || Object.keys(LAYER_CONFIG)[0];
+  const [activeEditLayer, setActiveEditLayer] = useState(defaultLayerKey);
   const [selectedElement, setSelectedElement] = useState(null); 
   const [dragInfo, setDragInfo] = useState(null); 
   const [hoverInfo, setHoverInfo] = useState(null);
@@ -88,6 +90,16 @@ export default function Editor({ project, onSaveProject, onClose }) {
   const [measureEnd, setMeasureEnd] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [projectWidthM, setProjectWidthM] = useState(10); 
+  const [calibrationMode, setCalibrationMode] = useState(false);
+  // ...istniejąca funkcja removeNodeFromLine z obsługą activeFloor znajduje się niżej, usuwamy duplikat...
+
+    const startCalibration = () => {
+      setCalibrationMode(true);
+      setIsMeasuring(true); 
+      setMeasureStart(null);
+      setMeasureEnd(null);
+      alert("Zaznacz dwa punkty na rzucie, aby wyznaczyć odcinek kalibracyjny.");
+    };
 
   const [showStats, setShowStats] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -164,7 +176,10 @@ export default function Editor({ project, onSaveProject, onClose }) {
       setMeasureStart(null);
       setMeasureEnd(null);
       setShowStats(false);
-      const isolatedLayers = Object.keys(LAYER_CONFIG).reduce((acc, k) => ({...acc, [k]: k === activeEditLayer}), {});
+      // Ustaw warstwę na obrys jeśli istnieje
+      const obrysKey = Object.keys(LAYER_CONFIG).find(k => LAYER_CONFIG[k].name === 'Obrys i Wymiary') || Object.keys(LAYER_CONFIG)[0];
+      setActiveEditLayer(obrysKey);
+      const isolatedLayers = Object.keys(LAYER_CONFIG).reduce((acc, k) => ({...acc, [k]: k === obrysKey}), {});
       setActiveLayers(isolatedLayers);
       setIsEditMode(true);
     } else {
@@ -225,42 +240,37 @@ export default function Editor({ project, onSaveProject, onClose }) {
 
   const handlePointerDown = (e) => {
     const pos = getPointerPos(e);
-    if (isEditMode && activeTool) {
-      if (!measureStart || measureEnd) {
-        setMeasureStart(pos);
-        setMeasureEnd(null);
-      } else {
-        setMeasureEnd(pos);
-
-        setTimeout(() => {
-          // UWAGA: Dopasowany warunek do narzędzia kalibracji
-          if ((activeTool === 'calibrate' || activeTool === 'kalibracja') && measureStart) {
-            const realLen = window.prompt("Podaj rzeczywistą długość zaznaczonego odcinka w metrach (np. 10.5):");
-            const parsedRealLen = realLen !== null ? parseFloat(String(realLen).replace(',', '.')) : NaN;
-            if (realLen && !isNaN(parsedRealLen)) {
-              const canvas = canvasRef.current;
-              const canvasHeight = canvas ? canvas.height : 1;
-              const canvasWidth = canvas ? canvas.width : 1;
-              const dx = pos.x - measureStart.x;
-              const dy = (pos.y - measureStart.y) * (canvasHeight / canvasWidth);
-              const fraction = Math.hypot(dx, dy);
-
-              if (fraction > 0) {
-                const newWidth = parsedRealLen / fraction;
-                setProjectWidthM(newWidth);
-                alert("Skala została pomyślnie zaktualizowana!");
-              }
-            }
-          }
-          // Po pomiarze lub kalibracji resetujemy zmienne
-          setMeasureStart(null);
+    if (isMeasuring) {
+        if (!measureStart || measureEnd) {
+          setMeasureStart(pos);
           setMeasureEnd(null);
-          setIsMeasuring(false);
-          setActiveTool(null);
-          setMeasureMode(null);
-        }, 100); // 100ms opóźnienia to klucz do działania window.prompt w React!
-      }
-      return;
+        } else {
+          setMeasureEnd(pos);
+          
+          if (calibrationMode) {
+             // Opóźnienie 50ms pozwala przeglądarce narysować drugi punkt zanim wyskoczy window.prompt
+             setTimeout(() => {
+                 const realLen = window.prompt("Podaj rzeczywistą długość zaznaczonego odcinka w metrach (np. 10.5):");
+                 if (realLen && !isNaN(parseFloat(realLen))) {
+                     const canvasHeight = canvasRef.current ? canvasRef.current.height : 1;
+                     const canvasWidth = canvasRef.current ? canvasRef.current.width : 1;
+                     const dx = pos.x - measureStart.x;
+                     const dy = (pos.y - measureStart.y) * (canvasHeight / canvasWidth);
+                     const fraction = Math.hypot(dx, dy);
+
+                     const newWidth = parseFloat(realLen) / fraction;
+                     setProjectWidthM(newWidth);
+                     alert(`Sukces! Skala zaktualizowana. Szerokość rzutu to ok. ${newWidth.toFixed(2)}m.`);
+                 }
+                 // Resetujemy stany po udanej (lub anulowanej) kalibracji
+                 setCalibrationMode(false);
+                 setIsMeasuring(false);
+                 setMeasureStart(null);
+                 setMeasureEnd(null);
+             }, 50);
+          }
+        }
+        return;
     }
     if (!isEditMode || !canvasRef.current || !activeFloor) return;
     const floorData = installations.floors.find(f => f.id === activeFloor)?.data;
@@ -396,7 +406,11 @@ export default function Editor({ project, onSaveProject, onClose }) {
       const copy = JSON.parse(JSON.stringify(prev));
       const floorIndex = copy.floors.findIndex(f => f.id === activeFloor);
       const el = copy.floors[floorIndex].data[selectedElement.layerKey][selectedElement.index];
-      if (['r', 'w', 'h', 'thickness'].includes(key)) el[key] = parseFloat(value) || 0.01; else el[key] = value;
+      if (['r', 'w', 'h', 'thickness', 'cost', 'costPerMeter'].includes(key)) {
+        el[key] = value === '' ? '' : (parseFloat(value) || 0);
+      } else {
+        el[key] = value;
+      }
       return copy;
     });
   };
@@ -422,7 +436,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
 
   const currentFloorData = activeFloor ? installations.floors?.find(f => f.id === activeFloor)?.data : null;
   const currentSelObj = (selectedElement && currentFloorData) ? currentFloorData[selectedElement.layerKey][selectedElement.index] : null;
-  const currentStats = calculateStats(installations, bgImage, projectWidthM);
+  const currentStats = calculateStats(installations, bgImage, projectWidthM, activeLayers);
 
   return (
     <div className="flex h-screen bg-[#F0F2F5] font-sans overflow-auto md:overflow-hidden relative w-full text-slate-800">
@@ -611,6 +625,7 @@ export default function Editor({ project, onSaveProject, onClose }) {
           addNewElement={addNewElement}
           measureMode={measureMode}
           onSelectMeasureTool={handleSelectMeasureTool}
+          startCalibration={startCalibration}
         />
       )}
 
@@ -623,6 +638,8 @@ export default function Editor({ project, onSaveProject, onClose }) {
           addNodeToLine={addNodeToLine}
           removeNodeFromLine={removeNodeFromLine}
           setSelectedElement={setSelectedElement}
+          dragInfo={dragInfo}
+          projectWidthM={projectWidthM}
         />
       )}
 

@@ -86,7 +86,7 @@ export const renderCanvas = ({
       if (el.type === 'circle') {
         ctx.arc(el.x * w, el.y * h, (el.r || 0.01) * w, 0, 2 * Math.PI);
       } else {
-        ctx.rect(el.x * w, el.y * h, (el.w || 0.02) * w, (el.h || 0.02) * h);
+        ctx.rect(el.x * w, el.y * h, (el.w || 0.02) * w, (el.h || 0.02) * w);
       }
       ctx.fill(); ctx.stroke();
       
